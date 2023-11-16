@@ -7,27 +7,24 @@
 </head>
 <body>
     <h2>Login</h2>
-    
+
     <?php
     // PHP code for handling form submission
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        // Retrieve values from the form
-        $username = $_POST["username"];
+        $srCode = $_POST["sr_code"];
         $password = $_POST["password"];
 
-        // Validate the login (in this example, check if the username and password match)
-        if (checkIfUserExists($username, $password)) {
+        // Validate the login
+        if (loginUser($srCode, $password)) {
             echo "<p>Login successful!</p>";
         } else {
-            // If the user doesn't exist or the password is incorrect, display an error message
-            echo "<p>Login failed. Please check your username and password.</p>";
+            echo "<p>Login failed. Please check your Sr_code and password.</p>";
         }
     }
 
-    function checkIfUserExists($Sr_code, $password) {
-        // Implement your database check here
-        // For demonstration, assume a database connection and a users table with username and password columns
-        $servername = "root";
+    function loginUser($srCode, $password) {
+        // Implement your database connection
+        $servername = "localhost";
         $dbname = "db_nt3102";
         $username_db = "Sr_code";
         $password_db = "password";
@@ -36,25 +33,41 @@
             $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username_db, $password_db);
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $stmt = $conn->prepare("SELECT * FROM users WHERE username = :username AND password = :password");
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':password', $password); // Note: In a real application, you should hash the password before comparing
-
+            // Check if the Sr_code exists in the database
+            $stmt = $conn->prepare("SELECT * FROM Student WHERE Sr_code = :srCode");
+            $stmt->bindParam(':srCode', $srCode);
             $stmt->execute();
 
-            return $stmt->rowCount() > 0;
+            if ($stmt->rowCount() > 0) {
+                // Sr_code exists, check the password
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($row['password'] === $password) {
+                    return true; // Login successful
+                }
+            } else {
+                // Sr_code doesn't exist, create a new account
+                $stmt = $conn->prepare("INSERT INTO Student (Sr_code, password) VALUES (:srCode, :password)");
+                $stmt->bindParam(':srCode', $srCode);
+                $stmt->bindParam(':password', $password);
+                $stmt->execute();
+
+                return true; // Login successful after account creation
+            }
+
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
             return false;
         } finally {
             $conn = null;
         }
+
+        return false;
     }
     ?>
 
     <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required>
+        <label for="sr_code">Sr_code:</label>
+        <input type="text" name="sr_code" required>
 
         <br>
 
