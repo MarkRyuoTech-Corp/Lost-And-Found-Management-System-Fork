@@ -24,7 +24,7 @@
         }
     }
 
-    function checkIfUserExists($username, $password) {
+    function checkIfUserExists($Sr_code, $password) {
         // Implement your database check here
         // For demonstration, assume a database connection and a users table with username and password columns
         $servername = "root";
