@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         // User exists, check password
         $row = $result->fetch_assoc();
-        if ($password == $row["Password"]) {
+        if ($password == $row["password"]) {
             echo "Login successful!";
             // Add your login logic here
         } else {
